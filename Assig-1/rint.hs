@@ -50,6 +50,7 @@ parser xs =  case apply (program "") xs of
 -- data Exp = LInt Int 
 --     | Prim Primop [Exp] deriving(Show)
 
+interpExp :: Exp -> IO Int
 interpExp (LInt x) = return x
 interpExp (Prim LRead []) = getLine >>= \x -> return (read x)
 interpExp (Prim Neg [exp]) = interpExp exp >>= \x -> return (-x)
@@ -58,8 +59,8 @@ interpExp (Prim Add [exp1, exp2]) = do
     b <- (interpExp exp2)
     return (a + b)
 
-interp (Program "" e) = interpExp e
+
+interp :: Program [Char] -> IO Int
+interp (Program _ e) = interpExp e
 
 
-peRint :: Program String -> Program String
-peRint (Program "" e) = peExp e
