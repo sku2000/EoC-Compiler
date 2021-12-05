@@ -32,7 +32,7 @@ class MonadZero m => MonadPlus m where
     plus :: m a -> m a -> m a
 
 instance MonadZero Parser where
-    zero = Parser (\cs -> [])
+    zero = Parser (const [])
 
 instance MonadPlus Parser where
     p `plus` q = Parser (\cs -> parse p cs ++ parse q cs)

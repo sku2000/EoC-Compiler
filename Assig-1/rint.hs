@@ -35,11 +35,11 @@ nat :: Parser Int
 nat = space >> ((sat isDigit >>= \x -> return (digitToInt x - digitToInt '0')) `chainl1` (return op))
         where m `op` n = 10*m + n
 
-program :: info -> Parser (Program info)
-program info = expr >>= \x -> return (Program info x)
+parser :: info -> Parser (Program info)
+parser info = expr >>= \x -> return (Program info x)
 
-parser :: String -> Program [Char]
-parser xs =  case apply (program "") xs of 
+program :: String -> Program [Char]
+program xs =  case apply (parser "") xs of 
         [(a, "")] -> a
         [(_, es)] -> error ("Parser did not consume entire stream : " ++ es)
         _ -> error "Parser error."
@@ -60,7 +60,8 @@ interpExp (Prim Add [exp1, exp2]) = do
     return (a + b)
 
 
-interp :: Program [Char] -> IO Int
-interp (Program _ e) = interpExp e
+interp :: String -> IO Int
+interp xs = case program xs of 
+    (Program _ pro) -> interpExp pro
 
 
