@@ -56,8 +56,10 @@ interpExp (Prim LRead []) = getLine >>= \x -> return (read x)
 interpExp (Prim Neg [exp]) = interpExp exp >>= \x -> return (-x)
 interpExp (Prim Add [exp1, exp2]) = do
     a <- interpExp exp1 
-    b <- (interpExp exp2)
+    b <- interpExp exp2
     return (a + b)
+interpExp _ = error "Undefined behavior"
+
 
 
 interp :: String -> IO Int
