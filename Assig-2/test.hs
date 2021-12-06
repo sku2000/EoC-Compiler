@@ -5,7 +5,7 @@ assert test passStatement failStatement = if test
     then putStrLn passStatement
     else putStrLn failStatement
 
--- test 
+-- test Rvar interpreter
 
 testInterp :: IO ()
 testInterp = do
