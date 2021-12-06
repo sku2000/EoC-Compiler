@@ -5,8 +5,9 @@ assert test passStatement failStatement = if test
     then putStrLn passStatement
     else putStrLn failStatement
 
--- test Interpreter
+-- test 
 
+testInterp :: IO ()
 testInterp = do
     putStrLn "Running tests Interpreter....."
     interp "42" >>= \x -> assert (x == 42) "passed '42'" "FAIL '42'"
