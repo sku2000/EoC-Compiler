@@ -1,3 +1,5 @@
+module Rvar where
+
 import Lparser(token, symb, Parser, chainl1, (+++), sat, apply, space, many)
 import Data.Char ( isAlphaNum, isDigit, digitToInt, isLetter )
 
@@ -16,8 +18,17 @@ data Exp = LInt Int
     
 data Program info = Program info Exp deriving(Show)
 
+parser :: info -> Parser (Program info)
+parser info = expr >>= \x -> return (Program info x)
+
+program :: String -> Program [Char]
+program xs =  case apply (parser "") xs of 
+        [(a, "")] -> a
+        [(_, es)] -> error ("Parser did not consume entire stream : " ++ es)
+        _ -> error "Parser error."
+
 expr :: Parser Exp
-expr = rread +++ neg +++ add +++ (nat >>= \x -> return (LInt x)) 
+expr = rread +++ neg +++ add +++ (nat >>= \x -> return (LInt x)) +++ (var >>= \x -> return (Var x)) +++ rlet
 
 rread :: Parser Exp
 rread =  symb "(" >>  symb "read" >> symb ")" >> return (Prim LRead [])
@@ -36,17 +47,28 @@ add = do
     return (Prim Add [x, y])
 
 nat :: Parser Int
-nat = space >> ((sat isDigit >>= \x -> return (digitToInt x - digitToInt '0')) `chainl1` (return op))
+nat = space >> ((sat isDigit >>= \x -> return (digitToInt x - digitToInt '0')) `chainl1` return op)
         where m `op` n = 10*m + n
 
--- isSym :: [Char] -> Parser Char
--- isSym xs = sat isAlphaNum +++ p xs
---     where p (x:xs) = sat (== x) +++ p xs
---           p [] = sat (const False)
-
-var :: Parser Exp
+var :: Parser [Char]
 var = space >> (sat isLetter >>= sym)
         where p (x:xs) = sat (== x) +++ p xs
               p [] = sat (const False)
               p2 xs = sat isAlphaNum +++ p xs            
-              sym x = many (p2 "~`!@#$%^&*_-;:") >>= \xs -> return (Var (x:xs))
+              sym x = many (p2 "~`!@#$%^&*_-;:") >>= \xs -> return (x:xs)
+
+rlet :: Parser Exp
+rlet = do
+    symb "("
+    symb "let"
+    symb "("
+    symb "["
+    v <- var
+    exp1 <- expr
+    symb "]"
+    symb ")"
+    l <- Let v exp1 <$> expr
+    symb ")"
+    return l
+
+
