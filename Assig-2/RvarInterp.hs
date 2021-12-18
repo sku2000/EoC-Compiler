@@ -32,7 +32,6 @@ interpExp env (Prim Add [exp1, exp2]) = do
 interpExp _ _ = error "Undefined behavior"
 
 
-interp :: String -> IO Int
-interp xs = case program xs of 
-    (Program _ exp) -> interpExp Map.empty  exp
+interp :: Program info -> IO Int
+interp (Program _ exp) = interpExp Map.empty exp
 
