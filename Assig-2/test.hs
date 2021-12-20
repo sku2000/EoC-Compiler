@@ -1,6 +1,7 @@
 import RvarInterp (interp)
 import Rvar (program)
 import RvarUniquifyPass (uniquify)
+import RemoveComplexOpera (removeComplexOperands)
 
 assert :: Bool -> String -> String -> IO ()
 assert test passStatement failStatement = if test
@@ -16,3 +17,9 @@ testInterp = let eval = interp . program in do
                  eval "(let ([x 41]) (+ x 1))" >>= \x -> assert (x == 42) "passed '42'" "FAIL '42'"
     
 -- test uniquify pass 
+
+                       
+-- test Remove Complex Operands pass
+
+
+                       
