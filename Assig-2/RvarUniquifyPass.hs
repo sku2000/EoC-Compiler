@@ -22,7 +22,6 @@ gensym var id = var ++ show id
     
 -- data Program info = Program info Exp deriving(Show)
 
--- 错误，varId并不唯一
 uniquifyExp :: (Show b, Num b) => Map.Map Var Var -> Exp -> b -> (Exp, b)
 uniquifyExp env exp varId = case exp of
     (LInt x) -> (LInt x, varId)
