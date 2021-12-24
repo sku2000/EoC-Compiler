@@ -2,6 +2,7 @@ import RvarInterp (interp)
 import Rvar (program)
 import RvarUniquifyPass (uniquify)
 import RemoveComplexOpera (removeComplexOperands)
+import ExplicateControl (explicateControlProgram) 
 
 assert :: Bool -> String -> String -> IO ()
 assert test passStatement failStatement = if test
@@ -18,8 +19,10 @@ testInterp = let eval = interp . program in do
     
 -- test uniquify pass 
 
-                       
 -- test Remove Complex Operands pass
-
+--  (+ (+ 2 3) (let ([x 2]) x))                     
+-- (+ (+ 2 3) (let ([x 2]) (+ x (let ([x 9]) x))))
+-- (+ (+ 2 3) (let ([x 2]) (+ (- x) (let ([x 9]) x))))
+-- (+ (+ 2 3) (let ([x 2]) (+ (+ x x) (let ([x 9]) x))))
 
                        

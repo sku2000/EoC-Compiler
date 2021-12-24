@@ -50,7 +50,7 @@ nat :: Parser Int
 nat = space >> ((sat isDigit >>= \x -> return (digitToInt x - digitToInt '0')) `chainl1` return op)
         where m `op` n = 10*m + n
 
-var :: Parser [Char]
+var :: Parser String
 var = space >> (sat isLetter >>= sym)
         where p (x:xs) = sat (== x) +++ p xs
               p [] = sat (const False)
@@ -64,11 +64,12 @@ rlet = do
     symb "("
     symb "["
     v <- var
+    space
     exp1 <- expr
+    space
     symb "]"
     symb ")"
     l <- Let v exp1 <$> expr
     symb ")"
     return l
-
 
