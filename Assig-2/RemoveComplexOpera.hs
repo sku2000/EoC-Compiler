@@ -29,33 +29,30 @@ isAtm (LInt x) = True
 isAtm (Var v) = True 
 isAtm _ = False 
 
-rcoExp :: (Num b, Show b) => Exp -> b -> (Exp, b)
-rcoExp (LInt x) varId = (LInt x, varId)
-rcoExp (Var v) varId = (Var v, varId)
-rcoExp (Let var exp1 exp2) varId = let (e1, newId1) = rcoExp exp1 varId
-                                       (e2, newId2) = rcoExp exp2 newId1 
-                                   in  (Let var e1 e2, newId2)
-rcoExp (Prim LRead []) varId = (Prim LRead [], varId)
-rcoExp (Prim Neg [exp]) varId = if isAtm exp 
-                                then (Prim Neg [exp], varId)
-                                else let newId = gensym varId  
-                                         (e1, newId1) = rcoExp exp (varId + 1)
-                                     in  (Let newId e1 (Prim Neg [Var newId]), newId1)
-rcoExp (Prim Add [exp1, exp2]) varId = case (isAtm exp1, isAtm exp2) of
-    (True, True) -> (Prim Add [exp1, exp2], varId)
-    (False, True) -> let newVar = gensym varId  
-                         (e1, newId1) = rcoExp exp1 (varId + 1)
-                     in  (Let newVar e1 (Prim Add [Var newVar, exp2]), newId1)
-    (True, False) -> let newVar = gensym varId 
-                         (e2, newId2) = rcoExp exp2 (varId + 1)
-                     in  (Let newVar e2 (Prim Add [exp1, Var newVar]), newId2)
-    (False, False) -> let newVar1 = gensym varId
-                          (e1, newId1) = rcoExp exp1 (varId + 1)
-                          newVar2 = gensym newId1
-                          (e2, newId2) = rcoExp exp2 (newId1 + 1)
-                      in (Let newVar1 e1 (Let newVar2 e2 (Prim Add [Var newVar1, Var newVar2])), newId2)
-rcoExp _ _ = error "Undefined behavior"
-                                       
+rcoExp :: (Num a, Show a) => Exp -> a -> ((Exp, a) -> Exp) -> Exp
+rcoExp (LInt x) varId cont =cont (LInt x, varId)
+rcoExp (Var v) varId cont = cont (Var v, varId)
+rcoExp (Prim LRead []) varId cont = cont (Prim LRead [], varId)
+rcoExp (Let var exp1 exp2) varId cont = rcoExp exp1 varId (\(x, vId) -> Let var x (rcoExp exp2 vId cont))
+rcoExp (Prim Neg [exp]) varId cont = handlingComplexExpressions exp varId (\(x, vId) -> cont (Prim Neg [x], vId))
+rcoExp (Prim Add [exp1, exp2]) varId cont = handlingComplexExpressions exp1 varId (\(x, vId) -> 
+    handlingComplexExpressions exp2 vId (\(y, vId2) -> cont (Prim Add [x, y], vId)))
+rcoExp _ _ _ = error "Undefined behavior"
+
+handlingComplexExpressions :: (Num a, Show a) => Exp -> a -> ((Exp, a) -> Exp) -> Exp
+handlingComplexExpressions exp varId cont = case exp of
+    (LInt x) -> cont (LInt x, varId)
+    (Var v) -> cont (Var v, varId)
+    (Prim LRead []) -> cont (Prim LRead [], varId)
+    (Let var exp1 exp2) -> handlingComplexExpressions exp1 varId 
+                                (\(x, vId) -> Let var x (handlingComplexExpressions exp2 vId cont))
+    (Prim Neg [e]) -> let newId = gensym varId in 
+        handlingComplexExpressions e (varId + 1) 
+            (\(x, vId)-> Let newId (Prim Neg [x]) (cont (Var newId, vId)))
+    (Prim Add [exp1, exp2]) -> let newId = gensym varId in handlingComplexExpressions exp1 (varId + 1)
+        (\(x, vId) -> handlingComplexExpressions exp2 vId 
+            (\(y, vId2) -> Let newId (Prim Add [x, y]) (cont (Var newId, vId2))))
+    _ -> error "Undefined behavior"
 
 removeComplexOperands :: Program info -> Program info
-removeComplexOperands (Program info exp) = let (e, _) = rcoExp exp 0 in Program info e
+removeComplexOperands (Program info exp) = Program info (rcoExp exp 0 fst)
