@@ -22,6 +22,7 @@ parser :: info -> Parser (Program info)
 parser info = expr >>= \x -> return (Program info x)
 
 program :: String -> Program [Char]
+program "" = error "No input program"
 program xs =  case apply (parser "") xs of 
         [(a, "")] -> a
         [(_, es)] -> error ("Parser did not consume entire stream : " ++ es)
