@@ -1,14 +1,10 @@
-{-# LANGUAGE GADTs #-}
-
 module ExplicateControl where
 
 import qualified Rvar
 
 type Var = String
 
-type Label = String
-
-data Atm = Int Int | Var Var deriving(Show)
+data Atm = Int Int | Var Var deriving(Eq, Show)
 
 data Exp = Atom Atm | LRead | Neg Atm | Add Atm Atm deriving(Show)
 
@@ -16,7 +12,7 @@ data Stmt = Assign Var Exp deriving(Show)
 
 data Tail = Return Exp | Seq Stmt Tail deriving(Show)
 
-data Program info = Program info [(Label,Tail)] deriving(Show)
+data Program info = Program info [(String,Tail)] deriving(Show)
 
 -- data Exp = LInt Int 
 --     | Prim Primop [Exp] 
