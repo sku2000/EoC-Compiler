@@ -30,6 +30,7 @@ selectInstAtom :: Atm -> Arg
 selectInstAtom (Int i) = Imm i
 selectInstAtom (Var v) = X86Var v
 
+selectInstStmt :: Stmt -> [Instr]
 selectInstStmt (Assign v exp) = case exp of 
     (Atom atm) -> [Movq (selectInstAtom atm) (X86Var v)] 
     LRead -> [Callq "read_int" 0, Movq (Reg RAX) (X86Var v)]
@@ -44,6 +45,7 @@ selectInstStmt (Assign v exp) = case exp of
                                then [Movq (X86Var v1) (X86Var v), Addq (X86Var v2) (X86Var v)]
                                else [Addq (X86Var (if v1 /= v then v1 else v2)) (X86Var v)]
 
+selectInstTail :: Tail -> [Instr]
 selectInstTail (Return exp) = case exp of
     (Atom atm) -> [Movq (selectInstAtom atm) (Reg RAX)]
     LRead -> [Callq "read_int" 0]
@@ -52,5 +54,7 @@ selectInstTail (Return exp) = case exp of
 selectInstTail (Seq stmt tail) = selectInstStmt stmt ++ selectInstTail tail
 
 
-selectInst (Program info ((label, tail):ps)) =  X86Program info [(label,Block "start" (selectInstTail  tail))] 
-selectInst (Program info []) = error "error"
+selectInst :: Program pinfo -> X86Program pinfo [Char]
+selectInst (Program info [(label, tail)]) =  X86Program info [(label,Block ""
+                                                             (selectInstTail  tail ++ [Jmp "conclusion"]))] 
+selectInst _ = error "SelectInstructions error"
