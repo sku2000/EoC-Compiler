@@ -3,6 +3,8 @@ import Rvar (program)
 import RvarUniquifyPass (uniquify)
 import RemoveComplexOpera (removeComplexOperands)
 import ExplicateControl (explicateControlProgram) 
+import TypeCheckCvar (checkProgram)
+import SelectInstructions (selectInst)
 
 assert :: Bool -> String -> String -> IO ()
 assert test passStatement failStatement = if test
@@ -25,4 +27,13 @@ testInterp = let eval = interp . program in do
 -- (+ (+ 2 3) (let ([x 2]) (+ (- x) (let ([x 9]) x))))
 -- (+ (+ 2 3) (let ([x 2]) (+ (+ x x) (let ([x 9]) x))))
 
-                       
+-- test Explicate Control
+-- (let ([y (let ([x 20]) (+ x (let ([x 22]) x)))]) y)
+
+-- test TypeCheckCvar
+-- (let ([a 42]) (let ([b a]) b))
+tcc = checkProgram . explicateControlProgram . removeComplexOperands . uniquify . program 
+
+-- test Select Instructions pass 
+-- (let ([a 42]) (let ([b a]) b))
+si = selectInst . tcc
