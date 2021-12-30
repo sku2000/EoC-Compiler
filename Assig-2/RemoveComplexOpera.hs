@@ -52,7 +52,7 @@ handlingComplexExpressions exp varId cont = case exp of
     (Prim Add [exp1, exp2]) -> let newId = gensym varId in handlingComplexExpressions exp1 (varId + 1)
         (\(x, vId) -> handlingComplexExpressions exp2 vId 
             (\(y, vId2) -> Let newId (Prim Add [x, y]) (cont (Var newId, vId2))))
-    _ -> error "Undefined behavior"
+    _ -> error "RemoveComplexOpera error"
 
 removeComplexOperands :: Program info -> Program info
 removeComplexOperands (Program info exp) = Program info (rcoExp exp 0 fst)
