@@ -22,7 +22,7 @@ data Program info = Program info [(String,Tail)] deriving(Show)
 explicateVarInt :: Rvar.Exp -> Atm
 explicateVarInt (Rvar.Var v) = Var v
 explicateVarInt (Rvar.LInt i) = Int i
-explicateVarInt _ = error "Undefined behavior"
+explicateVarInt _ = error "ExplicateControl: explicateVarInt error"
 
 explicateTail :: Rvar.Exp -> Tail
 explicateTail exp = case exp of
@@ -32,7 +32,7 @@ explicateTail exp = case exp of
     (Rvar.Prim Rvar.LRead []) -> Return LRead
     (Rvar.Prim Rvar.Neg [x]) -> Return (Neg (explicateVarInt x))
     (Rvar.Prim Rvar.Add [x, y] ) -> Return (Add (explicateVarInt x) (explicateVarInt y))
-    _ -> error "Undefined behavior"
+    _ -> error "ExplicateControl: explicateTail error"
 
 explicateAssign :: Rvar.Exp -> Rvar.Var -> Tail -> Tail
 explicateAssign exp var cont = case exp of
@@ -42,7 +42,7 @@ explicateAssign exp var cont = case exp of
     (Rvar.Prim Rvar.LRead []) -> Seq (Assign var LRead) cont
     (Rvar.Prim Rvar.Neg [x]) -> Seq (Assign var (Neg (explicateVarInt x))) cont
     (Rvar.Prim Rvar.Add [x, y] ) -> Seq (Assign var (Add (explicateVarInt x) (explicateVarInt y))) cont
-    _ -> error "Undefined behavior"
+    _ -> error "ExplicateControl: explicateAssign error"
 
 explicateControlProgram :: Rvar.Program info -> Program info
-explicateControlProgram (Rvar.Program info exp) = Program info [("main", explicateTail exp)] 
+explicateControlProgram (Rvar.Program info exp) = Program info [("start", explicateTail exp)] 
